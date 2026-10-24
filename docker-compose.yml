@@ -1,6 +1,7 @@
 services:
   mirofish:
     # 업스트림 MiroFish 이미지에는 성공 예측 기능이 없으므로 이 저장소 소스로 빌드한다
+    # 빌드 없이 쓰려면 아래 줄을 지우고 image 를 ghcr.io/moonsookim-ai/ai-predictor:latest 로 바꾼다
     build: .
     image: ai-predictor:local
     container_name: mirofish
