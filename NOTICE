@@ -1,0 +1,44 @@
+AI Predictor (AI 성공 예측기)
+Copyright (C) 2026 moonsookim-ai
+
+This program is a modified version of MiroFish
+(https://github.com/666ghj/MiroFish, commit 7657031, 2026-10-02),
+licensed under the GNU Affero General Public License v3.0 (see LICENSE).
+This modified version is distributed under the same license.
+
+Modifications by moonsookim-ai, starting 2026-10-24:
+  - 2026-10-24  Repurposed as a success predictor for new products, businesses
+                and strategies in the Korean market: business brief input,
+                market-stakeholder ontology, Korean consumer panel, structured
+                stakeholder survey and success scorecard, Korea market/policy
+                knowledge pack, Korean UI locale and defaults (KST).
+  - 2026-10-24  Paid-run tickets issued by ceoai.kr (credit deduction), with
+                refund/complete callbacks.
+  - 2026-10-24  Source-code notice in the web UI pointing to this repository
+                (AGPL-3.0 section 13).
+The full list of changes is in the Git history of
+https://github.com/moonsookim-ai/ai-predictor
+
+Source code of the running service:
+  https://github.com/moonsookim-ai/ai-predictor
+  (Docker images built by .github/workflows/docker-image.yml link the exact
+   commit in the UI footer.)
+
+Third-party components (see each package for its full license):
+  - CAMEL-AI OASIS / camel-ai          Apache-2.0
+  - PyMuPDF                            AGPL-3.0 (or Artifex commercial)
+  - zep-cloud (Zep Python SDK)         Apache-2.0  — Zep Cloud is a separate paid service
+  - Flask, httpx, python-dotenv        BSD-3-Clause
+  - flask-cors, pydantic, charset-normalizer, Vue, vue-router, vue-i18n, axios  MIT
+  - d3                                 ISC
+  - chardet                            LGPL-2.1-or-later
+  - openai (Python SDK)                Apache-2.0
+
+Data:
+  - Nemotron-Personas-Korea by NVIDIA, CC BY 4.0
+    https://huggingface.co/datasets/nvidia/Nemotron-Personas-Korea
+    (a sample is downloaded at setup time by backend/scripts/fetch_korean_personas.py;
+     the data is not included in this repository)
+
+"MiroFish" and its logo are names of the original project; this license does not
+grant trademark rights.

@@ -720,5 +720,8 @@
     "support_programs": "Applicable government support programs (check latest notices)",
     "regulatory_checks": "Pre-launch regulatory checks",
     "disclaimer": "A relative indicator aggregated from surveys of LLM-simulated stakeholders and a Korean persona panel (Nemotron-Personas-Korea). It is not calibrated against real market outcomes; use it as decision support only."
+  },
+  "source": {
+    "label": "Source code (AGPL-3.0)"
   }
 }

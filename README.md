@@ -95,6 +95,7 @@ npm run dev                   # 프론트 http://localhost:3000, 백엔드 http:
 ## 출처와 라이선스
 
 - 원본: [666ghj/MiroFish](https://github.com/666ghj/MiroFish) (AGPL-3.0). 이 포크도 AGPL-3.0입니다. 수정본을 네트워크 서비스로 제공하면 사용자에게 소스를 공개해야 합니다.
+- 수정 사실·날짜·서드파티 라이선스는 [`NOTICE`](./NOTICE)에 적었습니다. 웹 화면 오른쪽 아래 「소스 코드 (AGPL-3.0)」 링크는 Docker 이미지를 빌드한 커밋을 가리킵니다(`VITE_SOURCE_COMMIT`).
 - 페르소나 데이터: NVIDIA, *Nemotron-Personas-Korea* (CC BY 4.0). 표본 파일은 저장소에 포함하지 않으며, 사용자가 직접 내려받습니다.
 - 시뮬레이션 엔진: [CAMEL-AI OASIS](https://github.com/camel-ai/oasis)
 
