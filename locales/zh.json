@@ -720,5 +720,8 @@
     "support_programs": "可申请的政府支持项目（请核实最新公告）",
     "regulatory_checks": "上市前法规·许可检查",
     "disclaimer": "该评分汇总自LLM模拟利益相关方与韩国人物面板（Nemotron-Personas-Korea）的问卷，属于相对指标，未经真实市场结果校准，仅供决策参考。"
+  },
+  "source": {
+    "label": "源代码 (AGPL-3.0)"
   }
 }

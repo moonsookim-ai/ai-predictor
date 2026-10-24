@@ -1,9 +1,11 @@
 <template>
   <router-view />
+  <SourceNotice />
 </template>
 
 <script setup>
 // 使用 Vue Router 来管理页面
+import SourceNotice from './components/SourceNotice.vue'
 </script>
 
 <style>

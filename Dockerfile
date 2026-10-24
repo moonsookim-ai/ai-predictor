@@ -23,6 +23,10 @@ RUN npm ci \
 # 复制项目源码
 COPY . .
 
+# 화면의 「소스 코드」 링크가 이 이미지를 빌드한 커밋을 가리키게 한다（AGPL-3.0 13조）
+ARG SOURCE_COMMIT=""
+ENV VITE_SOURCE_COMMIT=$SOURCE_COMMIT
+
 EXPOSE 3000 5001
 
 # 同时启动前后端（开发模式）
