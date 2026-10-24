@@ -306,6 +306,24 @@ const brief = ref({
 
 const hasBrief = computed(() => brief.value.name.trim() !== '' || brief.value.description.trim() !== '')
 
+// ceoai.kr 에서 크레딧을 내고 넘어오면 주소에 실행권(?ticket=)이 붙는다.
+// 주소창·방문 기록에 남지 않게 바로 지우고, 이 탭에서만 기억했다가 예측을 만들 때 낸다.
+const TICKET_KEY = 'predictorTicket'
+try {
+  const url = new URL(window.location.href)
+  const incoming = url.searchParams.get('ticket')
+  if (incoming) {
+    sessionStorage.setItem(TICKET_KEY, incoming)
+    url.searchParams.delete('ticket')
+    window.history.replaceState(null, '', url.pathname + url.search + url.hash)
+  }
+} catch (e) {
+  // sessionStorage 를 쓸 수 없는 환경이면 실행권 없이 진행한다（서버가 필요하면 막는다）
+}
+const readTicket = () => {
+  try { return sessionStorage.getItem(TICKET_KEY) } catch (e) { return null }
+}
+
 // 文件列表
 const files = ref([])
 
@@ -385,7 +403,8 @@ const startSimulation = () => {
     setPendingUpload(
       files.value,
       formData.value.simulationRequirement,
-      hasBrief.value ? { ...brief.value } : null
+      hasBrief.value ? { ...brief.value } : null,
+      readTicket()
     )
     
     // 立即跳转到Process页面（使用特殊标识表示新建项目）

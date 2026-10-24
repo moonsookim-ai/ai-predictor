@@ -55,6 +55,10 @@ class Config:
         'TREND', 'REFRESH', 'DO_NOTHING', 'FOLLOW', 'MUTE'
     ]
     
+    # ceoai.kr 크레딧 결제 연동（비어 있으면 실행권 없이 열린다 — 로컬 개발용）
+    PREDICTOR_TICKET_SECRET = os.environ.get('PREDICTOR_TICKET_SECRET', '')
+    PREDICTOR_CALLBACK_URL = os.environ.get('PREDICTOR_CALLBACK_URL', 'https://ceoai.kr/api/predictor-callback')
+    
     # 한국인 가상 소비자 패널（Nemotron-Personas-Korea 표본에서 뽑는 고객 Agent 수, 0이면 끔）
     KOREAN_PANEL_SIZE = int(os.environ.get('KOREAN_PANEL_SIZE', '30'))
     

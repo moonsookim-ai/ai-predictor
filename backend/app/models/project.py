@@ -50,6 +50,8 @@ class Project:
     simulation_requirement: Optional[str] = None
     # 사업 브리프（신제품/신사업/신전략 성공 예측용 구조화 입력）
     business_brief: Optional[Dict[str, Any]] = None
+    # ceoai.kr 결제 주문번호（실행권으로 시작한 예측만 있음）
+    order_id: Optional[str] = None
     chunk_size: int = 500
     chunk_overlap: int = 50
     
@@ -74,6 +76,7 @@ class Project:
             "zep_batch_operation_id": self.zep_batch_operation_id,
             "simulation_requirement": self.simulation_requirement,
             "business_brief": self.business_brief,
+            "order_id": self.order_id,
             "chunk_size": self.chunk_size,
             "chunk_overlap": self.chunk_overlap,
             "error": self.error
@@ -102,6 +105,7 @@ class Project:
             zep_batch_operation_id=data.get('zep_batch_operation_id'),
             simulation_requirement=data.get('simulation_requirement'),
             business_brief=data.get('business_brief'),
+            order_id=data.get('order_id'),
             chunk_size=data.get('chunk_size', 500),
             chunk_overlap=data.get('chunk_overlap', 50),
             error=data.get('error')

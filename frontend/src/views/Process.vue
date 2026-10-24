@@ -588,6 +588,9 @@ const handleNewProject = async () => {
     if (pending.businessBrief) {
       formDataObj.append('business_brief', JSON.stringify(pending.businessBrief))
     }
+    if (pending.ticket) {
+      formDataObj.append('ticket', pending.ticket)
+    }
     
     // 调用本体生成 API
     const response = await generateOntology(formDataObj)

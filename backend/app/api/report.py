@@ -12,6 +12,7 @@ from . import report_bp
 from ..config import Config
 from ..services.report_agent import ReportAgent, ReportManager, ReportStatus
 from ..services.success_evaluator import SuccessEvaluator
+from ..utils.predictor_ticket import notify_order
 from ..services.simulation_manager import SimulationManager
 from ..services.simulation_runner import SimulationRunner, RunnerStatus
 from ..services.zep_graph_memory_updater import ZepGraphMemoryManager
@@ -225,6 +226,7 @@ def generate_report():
             }), 409
         
         simulation_requirement = project.simulation_requirement
+        order_id = getattr(project, "order_id", None)
         if not simulation_requirement:
             return jsonify({
                 "success": False,
@@ -356,6 +358,8 @@ def generate_report():
                     ReportManager.save_report(report)
 
                     if report.status == ReportStatus.COMPLETED:
+                        # 첫 보고서가 나오면 ceoai.kr 주문을 완료로 닫는다（그 뒤로는 환불 대상이 아니다）
+                        notify_order(order_id, "complete")
                         task_manager.complete_task(
                             task_id,
                             result={

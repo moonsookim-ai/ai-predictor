@@ -8,13 +8,15 @@ const state = reactive({
   files: [],
   simulationRequirement: '',
   businessBrief: null,
+  ticket: null,
   isPending: false
 })
 
-export function setPendingUpload(files, requirement, businessBrief = null) {
+export function setPendingUpload(files, requirement, businessBrief = null, ticket = null) {
   state.files = files
   state.simulationRequirement = requirement
   state.businessBrief = businessBrief
+  state.ticket = ticket
   state.isPending = true
 }
 
@@ -23,6 +25,7 @@ export function getPendingUpload() {
     files: state.files,
     simulationRequirement: state.simulationRequirement,
     businessBrief: state.businessBrief,
+    ticket: state.ticket,
     isPending: state.isPending
   }
 }
@@ -31,7 +34,10 @@ export function clearPendingUpload() {
   state.files = []
   state.simulationRequirement = ''
   state.businessBrief = null
+  state.ticket = null
   state.isPending = false
+  // 예측이 만들어지면 실행권은 소진됐다 - 다음 예측에 다시 내지 않게 지운다
+  try { sessionStorage.removeItem('predictorTicket') } catch (e) {}
 }
 
 export default state
