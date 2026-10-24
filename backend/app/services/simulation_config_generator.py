@@ -550,7 +550,7 @@ class SimulationConfigGenerator:
 请生成时间配置JSON。
 
 ### 基本原则（仅供参考，需根据具体事件和参与群体灵活调整）：
-- 请根据模拟场景推断目标用户群体所在时区和作息习惯，以下为东八区(UTC+8)的参考示例
+- 请根据模拟场景推断目标用户群体所在时区和作息习惯，默认目标市场为韩国，以下为韩国标准时间(KST, UTC+9)的参考示例
 - 凌晨0-5点几乎无人活动（活跃度系数0.05）
 - 早上6-8点逐渐活跃（活跃度系数0.4）
 - 工作时间9-18点中等活跃（活跃度系数0.7）
@@ -607,7 +607,7 @@ class SimulationConfigGenerator:
             "off_peak_hours": [0, 1, 2, 3, 4, 5],
             "morning_hours": [6, 7, 8],
             "work_hours": [9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
-            "reasoning": "使用默认中国人作息配置（每轮1小时）"
+            "reasoning": "使用默认韩国人作息配置（每轮1小时）"
         }
     
     def _parse_time_config(self, result: Dict[str, Any], num_entities: int) -> TimeSimulationConfig:
@@ -843,7 +843,7 @@ class SimulationConfigGenerator:
 
 ## 任务
 为每个实体生成活动配置，注意：
-- **时间符合目标用户群体作息**：以下为参考（东八区），请根据模拟场景调整
+- **时间符合目标用户群体作息**：以下为参考（韩国标准时间 KST），请根据模拟场景调整
 - **官方机构**（University/GovernmentAgency）：活跃度低(0.1-0.3)，工作时间(9-17)活动，响应慢(60-240分钟)，影响力高(2.5-3.0)
 - **媒体**（MediaOutlet）：活跃度中(0.4-0.6)，全天活动(8-23)，响应快(5-30分钟)，影响力高(2.0-2.5)
 - **个人**（Student/Person/Alumni）：活跃度高(0.6-0.9)，主要晚间活动(18-23)，响应快(1-15分钟)，影响力低(0.8-1.2)
@@ -857,7 +857,7 @@ class SimulationConfigGenerator:
             "activity_level": <0.0-1.0>,
             "posts_per_hour": <发帖频率>,
             "comments_per_hour": <评论频率>,
-            "active_hours": [<活跃小时列表，考虑中国人作息>],
+            "active_hours": [<活跃小时列表，考虑韩国人作息>],
             "response_delay_min": <最小响应延迟分钟>,
             "response_delay_max": <最大响应延迟分钟>,
             "sentiment_bias": <-1.0到1.0>,

@@ -18,6 +18,9 @@ from .zep_entity_reader import ZepEntityReader, FilteredEntities
 from .oasis_profile_generator import OasisProfileGenerator, OasisAgentProfile
 from .simulation_config_generator import SimulationConfigGenerator, SimulationParameters
 from ..utils.locale import t
+from ..utils.business_brief import render_business_brief
+from ..models.project import ProjectManager
+from .korean_persona_panel import KoreanPersonaPanelBuilder
 
 logger = get_logger('mirofish.simulation')
 
@@ -364,6 +367,12 @@ class SimulationManager:
                 output_platform=realtime_platform  # 输出格式
             )
             
+            # 한국인 가상 소비자 패널（Nemotron-Personas-Korea）로 고객 표본을 보강한다
+            panel_profiles, panel_configs = self._build_korean_panel(
+                state, simulation_requirement, start_id=len(profiles), sim_dir=sim_dir
+            )
+            profiles = profiles + panel_profiles
+
             state.profiles_count = len(profiles)
             state.profiles_generated = len(profiles) > 0
             self._save_simulation_state(state)
@@ -439,6 +448,8 @@ class SimulationManager:
                     total=3
                 )
             
+            sim_params.agent_configs.extend(panel_configs)
+
             # 保存配置文件
             config_path = os.path.join(sim_dir, "simulation_config.json")
             with open(config_path, 'w', encoding='utf-8') as f:
@@ -476,6 +487,31 @@ class SimulationManager:
             self._save_simulation_state(state)
             raise
     
+    def _build_korean_panel(self, state, simulation_requirement: str, start_id: int, sim_dir: str):
+        """
+        사업 브리프의 타깃 고객에 맞춘 한국인 소비자 패널을 만든다.
+        표본 파일이 없거나 실패하면 패널 없이 진행한다.
+        """
+        if Config.KOREAN_PANEL_SIZE <= 0:
+            return [], []
+        project = ProjectManager.get_project(state.project_id)
+        brief = (project.business_brief if project else None) or {}
+        target_text = render_business_brief(brief) or simulation_requirement
+        try:
+            profiles, configs, meta = KoreanPersonaPanelBuilder().build(
+                target_text=target_text,
+                start_id=start_id,
+                size=Config.KOREAN_PANEL_SIZE,
+            )
+        except Exception:
+            logger.exception("한국인 소비자 패널 생성 실패, 패널 없이 진행합니다")
+            return [], []
+        if not meta.get("enabled"):
+            logger.warning(f"한국인 소비자 패널 비활성화: {meta.get('reason')}")
+        with open(os.path.join(sim_dir, "korean_panel.json"), 'w', encoding='utf-8') as f:
+            json.dump(meta, f, ensure_ascii=False, indent=2)
+        return profiles, configs
+
     def get_simulation(self, simulation_id: str) -> Optional[SimulationState]:
         """获取模拟状态"""
         return self._load_simulation_state(simulation_id)

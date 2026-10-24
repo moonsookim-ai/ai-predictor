@@ -22,6 +22,8 @@ from ..config import Config
 from ..utils.llm_client import LLMClient
 from ..utils.logger import get_logger
 from ..utils.locale import get_language_instruction, t
+from .success_evaluator import render_scorecard_markdown
+from ..knowledge import load_korea_business_context
 from .zep_tools import (
     ZepToolsService, 
     SearchResult, 
@@ -588,6 +590,24 @@ PLAN_SYSTEM_PROMPT = """\
 
 注意：sections数组最少2个，最多5个元素！"""
 
+BUSINESS_REPORT_GUIDANCE = """\
+【이 보고서의 목적：신제품·신사업·신전략 성공 예측】
+예측 대상은 시장에 내놓으려는 신제품·신사업·신전략이다. 보고서는 의사결정자（CEO·경영진）가 추진 여부를 판단할 수 있게 다음 질문에 답해야 한다：
+1. 타깃 고객 세그먼트별로 수용도는 어떻게 갈렸고，그 이유는 무엇인가？
+2. 경쟁사·유통·파트너·언론·규제기관 등 이해관계자는 어떻게 반응했는가？
+3. 성공을 가로막는 핵심 리스크와，성공하기 위한 조건（가격·포지셔닝·채널·타이밍 등）은 무엇인가？
+4. 추진 / 조건부 추진 / 피벗 / 중단 중 무엇을 권고하며，다음에 무엇을 검증해야 하는가？
+주장마다 시뮬레이션 속 Agent의 실제 언행을 근거로 들고，근거 없는 낙관을 피하라.
+독자는 한국의 기업과 예비 창업자다. 한국 시장 특성（플랫폼 구조·인구 구조·소비 성향）과 한국의 규제·인허가，
+추진 주체의 단계에 맞는 정부 지원사업（아래 참고자료）을 반영하고，지원사업·규제는 최신 공고 확인이 필요하다고 명시하라."""
+
+
+def _business_report_guidance() -> str:
+    context = load_korea_business_context()
+    if not context:
+        return BUSINESS_REPORT_GUIDANCE
+    return f"{BUSINESS_REPORT_GUIDANCE}\n\n【한국 시장·정책 참고자료】\n{context}"
+
 PLAN_USER_PROMPT_TEMPLATE = """\
 【预测场景设定】
 我们向模拟世界注入的变量（模拟需求）：{simulation_requirement}
@@ -893,7 +913,8 @@ class ReportAgent:
         simulation_id: str,
         simulation_requirement: str,
         llm_client: Optional[LLMClient] = None,
-        zep_tools: Optional[ZepToolsService] = None
+        zep_tools: Optional[ZepToolsService] = None,
+        success_evaluation: Optional[Dict[str, Any]] = None
     ):
         """
         初始化Report Agent
@@ -911,6 +932,8 @@ class ReportAgent:
         
         self.llm = llm_client or LLMClient()
         self.zep_tools = zep_tools or ZepToolsService()
+        # 성공 예측 스코어카드（SuccessEvaluator 결과，없으면 None）
+        self.success_evaluation = success_evaluation
         
         # 工具定义
         self.tools = self._define_tools()
@@ -922,6 +945,29 @@ class ReportAgent:
         
         logger.info(t('report.agentInitDone', graphId=graph_id, simulationId=simulation_id))
     
+    def _success_evaluation_context(self) -> str:
+        """스코어카드를 프롬프트에 넣을 요약 텍스트로 만든다（없으면 빈 문자열）"""
+        if not self.success_evaluation:
+            return ""
+        scorecard = self.success_evaluation.get("scorecard") or {}
+        summary = {
+            "success_score": scorecard.get("success_score"),
+            "verdict": (scorecard.get("verdict") or {}).get("label"),
+            "confidence": (scorecard.get("confidence") or {}).get("label"),
+            "components": {
+                c.get("label"): c.get("score")
+                for c in (scorecard.get("components") or {}).values()
+            },
+            "metrics": scorecard.get("metrics"),
+            "segments": scorecard.get("segments", [])[:10],
+            "insights": self.success_evaluation.get("insights"),
+        }
+        return (
+            "\n\n【성공 예측 스코어카드（가상 이해관계자 설문 집계，보고서 맨 앞에 자동 삽입됨）】\n"
+            f"{json.dumps(summary, ensure_ascii=False)}\n"
+            "본문은 이 수치를 반복 나열하지 말고, 점수가 왜 이렇게 나왔는지를 시뮬레이션 근거로 설명하세요."
+        )
+
     def _define_tools(self) -> Dict[str, Dict[str, Any]]:
         """定义可用工具"""
         return {
@@ -1202,7 +1248,7 @@ class ReportAgent:
         if progress_callback:
             progress_callback("planning", 30, t('progress.generatingOutline'))
         
-        system_prompt = f"{PLAN_SYSTEM_PROMPT}\n\n{get_language_instruction()}"
+        system_prompt = f"{PLAN_SYSTEM_PROMPT}\n\n{_business_report_guidance()}\n\n{get_language_instruction()}"
         user_prompt = PLAN_USER_PROMPT_TEMPLATE.format(
             simulation_requirement=self.simulation_requirement,
             total_nodes=context.get('graph_statistics', {}).get('total_nodes', 0),
@@ -1211,6 +1257,7 @@ class ReportAgent:
             total_entities=context.get('total_entities', 0),
             related_facts_json=json.dumps(context.get('related_facts', [])[:10], ensure_ascii=False, indent=2),
         )
+        user_prompt += self._success_evaluation_context()
 
         try:
             response = self.llm.chat_json(
@@ -1298,7 +1345,10 @@ class ReportAgent:
             section_title=section.title,
             tools_description=self._get_tools_description(),
         )
-        system_prompt = f"{system_prompt}\n\n{get_language_instruction()}"
+        system_prompt = (
+            f"{system_prompt}\n\n{_business_report_guidance()}"
+            f"{self._success_evaluation_context()}\n\n{get_language_instruction()}"
+        )
 
         # 构建用户prompt - 每个已完成章节各传入最大4000字
         if previous_sections:
@@ -1748,7 +1798,11 @@ class ReportAgent:
             )
             
             # 使用ReportManager组装完整报告
-            report.markdown_content = ReportManager.assemble_full_report(report_id, outline)
+            report.markdown_content = ReportManager.assemble_full_report(
+                report_id,
+                outline,
+                preamble=render_scorecard_markdown(self.success_evaluation) if self.success_evaluation else "",
+            )
             report.status = ReportStatus.COMPLETED
             report.completed_at = datetime.now().isoformat()
             
@@ -2315,7 +2369,7 @@ class ReportManager:
         return sections
     
     @classmethod
-    def assemble_full_report(cls, report_id: str, outline: ReportOutline) -> str:
+    def assemble_full_report(cls, report_id: str, outline: ReportOutline, preamble: str = "") -> str:
         """
         组装完整报告
         
@@ -2335,6 +2389,11 @@ class ReportManager:
         
         # 后处理：清理整个报告的标题问题
         md_content = cls._post_process_report(md_content, outline)
+
+        # 스코어카드 등 고정 머리말은 후처리 이후 요약 구분선 바로 뒤에 넣는다
+        if preamble:
+            head, sep, body = md_content.partition("---\n\n")
+            md_content = f"{head}{sep}{preamble}\n\n---\n\n{body}" if sep else f"{preamble}\n\n{md_content}"
         
         # 保存完整报告
         full_path = cls._get_report_markdown_path(report_id)

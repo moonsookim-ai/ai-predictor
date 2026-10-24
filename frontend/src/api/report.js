@@ -49,3 +49,11 @@ export const getReport = (reportId) => {
 export const chatWithReport = (data) => {
   return service.post('/api/report/chat', data)
 }
+
+/**
+ * 성공 예측 스코어카드 조회
+ * @param {string} simulationId
+ */
+export const getSuccessEvaluation = (simulationId) => {
+  return service.get(`/api/report/success-evaluation/${simulationId}`)
+}

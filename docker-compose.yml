@@ -1,8 +1,8 @@
 services:
   mirofish:
-    image: ghcr.io/666ghj/mirofish:latest
-    # 加速镜像（如拉取缓慢可替换上方地址）
-    # image: ghcr.nju.edu.cn/666ghj/mirofish:latest
+    # 업스트림 MiroFish 이미지에는 성공 예측 기능이 없으므로 이 저장소 소스로 빌드한다
+    build: .
+    image: ai-predictor:local
     container_name: mirofish
     env_file:
       - .env
@@ -12,3 +12,5 @@ services:
     restart: unless-stopped
     volumes:
       - ./backend/uploads:/app/backend/uploads
+      # 한국인 페르소나 표본（npm run setup:personas 로 생성）
+      - ./backend/data:/app/backend/data

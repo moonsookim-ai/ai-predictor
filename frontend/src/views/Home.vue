@@ -172,6 +172,70 @@
               <span>{{ $t('home.inputParams') }}</span>
             </div>
 
+            <!-- 사업 브리프 -->
+            <div class="console-section">
+              <div class="console-header">
+                <span class="console-label">{{ $t('brief.title') }}</span>
+                <span class="console-meta">{{ $t('brief.hint') }}</span>
+              </div>
+              <div class="brief-grid">
+                <label class="brief-field">
+                  <span>{{ $t('brief.initiativeType') }}</span>
+                  <select v-model="brief.initiative_type" :disabled="loading">
+                    <option value="product">{{ $t('brief.types.product') }}</option>
+                    <option value="business">{{ $t('brief.types.business') }}</option>
+                    <option value="strategy">{{ $t('brief.types.strategy') }}</option>
+                  </select>
+                </label>
+                <label class="brief-field">
+                  <span>{{ $t('brief.applicantType') }}</span>
+                  <select v-model="brief.applicant_type" :disabled="loading">
+                    <option value="pre_founder">{{ $t('brief.applicants.pre_founder') }}</option>
+                    <option value="early_startup">{{ $t('brief.applicants.early_startup') }}</option>
+                    <option value="growth_startup">{{ $t('brief.applicants.growth_startup') }}</option>
+                    <option value="sme">{{ $t('brief.applicants.sme') }}</option>
+                    <option value="large_company">{{ $t('brief.applicants.large_company') }}</option>
+                  </select>
+                </label>
+                <label class="brief-field">
+                  <span>{{ $t('brief.name') }}</span>
+                  <input v-model="brief.name" :placeholder="$t('brief.namePlaceholder')" :disabled="loading" />
+                </label>
+                <label class="brief-field">
+                  <span>{{ $t('brief.industry') }}</span>
+                  <input v-model="brief.industry" :placeholder="$t('brief.industryPlaceholder')" :disabled="loading" />
+                </label>
+                <label class="brief-field brief-field--wide">
+                  <span>{{ $t('brief.description') }}</span>
+                  <textarea v-model="brief.description" rows="2" :placeholder="$t('brief.descriptionPlaceholder')" :disabled="loading"></textarea>
+                </label>
+                <label class="brief-field brief-field--wide">
+                  <span>{{ $t('brief.targetCustomer') }}</span>
+                  <input v-model="brief.target_customer" :placeholder="$t('brief.targetCustomerPlaceholder')" :disabled="loading" />
+                </label>
+                <label class="brief-field">
+                  <span>{{ $t('brief.price') }}</span>
+                  <input v-model="brief.price" inputmode="numeric" :placeholder="$t('brief.pricePlaceholder')" :disabled="loading" />
+                </label>
+                <label class="brief-field">
+                  <span>{{ $t('brief.priceUnit') }}</span>
+                  <input v-model="brief.price_unit" :placeholder="$t('brief.priceUnitPlaceholder')" :disabled="loading" />
+                </label>
+                <label class="brief-field brief-field--wide">
+                  <span>{{ $t('brief.competitors') }}</span>
+                  <input v-model="brief.competitors" :placeholder="$t('brief.competitorsPlaceholder')" :disabled="loading" />
+                </label>
+                <label class="brief-field">
+                  <span>{{ $t('brief.channels') }}</span>
+                  <input v-model="brief.channels" :placeholder="$t('brief.channelsPlaceholder')" :disabled="loading" />
+                </label>
+                <label class="brief-field">
+                  <span>{{ $t('brief.successCriteria') }}</span>
+                  <input v-model="brief.success_criteria" :placeholder="$t('brief.successCriteriaPlaceholder')" :disabled="loading" />
+                </label>
+              </div>
+            </div>
+
             <!-- 输入区域 -->
             <div class="console-section">
               <div class="console-header">
@@ -224,6 +288,24 @@ const formData = ref({
   simulationRequirement: ''
 })
 
+// 사업 브리프（신제품·신사업·신전략 성공 예측 입력）
+const brief = ref({
+  initiative_type: 'product',
+  applicant_type: 'pre_founder',
+  name: '',
+  industry: '',
+  description: '',
+  target_customer: '',
+  price: '',
+  price_unit: '',
+  competitors: '',
+  channels: '',
+  success_criteria: '',
+  currency: 'KRW'
+})
+
+const hasBrief = computed(() => brief.value.name.trim() !== '' || brief.value.description.trim() !== '')
+
 // 文件列表
 const files = ref([])
 
@@ -237,7 +319,7 @@ const fileInput = ref(null)
 
 // 计算属性:是否可以提交
 const canSubmit = computed(() => {
-  return formData.value.simulationRequirement.trim() !== '' && files.value.length > 0
+  return (formData.value.simulationRequirement.trim() !== '' || hasBrief.value) && files.value.length > 0
 })
 
 // 触发文件选择
@@ -300,7 +382,11 @@ const startSimulation = () => {
   
   // 存储待上传的数据
   import('../store/pendingUpload.js').then(({ setPendingUpload }) => {
-    setPendingUpload(files.value, formData.value.simulationRequirement)
+    setPendingUpload(
+      files.value,
+      formData.value.simulationRequirement,
+      hasBrief.value ? { ...brief.value } : null
+    )
     
     // 立即跳转到Process页面（使用特殊标识表示新建项目）
     router.push({
@@ -312,6 +398,49 @@ const startSimulation = () => {
 </script>
 
 <style scoped>
+.brief-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.brief-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.brief-field--wide {
+  grid-column: 1 / -1;
+}
+
+.brief-field input,
+.brief-field select,
+.brief-field textarea {
+  border: 1px solid #DDD;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: #FAFAFA;
+  color: #000;
+  resize: vertical;
+}
+
+.brief-field input:focus,
+.brief-field select:focus,
+.brief-field textarea:focus {
+  outline: none;
+  border-color: #000;
+}
+
+@media (max-width: 640px) {
+  .brief-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* 全局变量与重置 */
 :root {
   --black: #000000;

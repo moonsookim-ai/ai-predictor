@@ -26,6 +26,7 @@ from ..services.simulation_manager import SimulationManager
 from ..services.simulation_runner import SimulationRunner, RunnerStatus
 from ..services.zep_graph_memory_updater import ZepGraphMemoryManager
 from ..utils.llm_client import LLMResponseError
+from ..utils.business_brief import build_simulation_requirement, normalize_business_brief
 
 # 获取日志器
 logger = get_logger('mirofish.api')
@@ -271,7 +272,8 @@ def generate_ontology():
     
     参数：
         files: 上传的文件（PDF/MD/TXT），可多个
-        simulation_requirement: 模拟需求描述（必填）
+        simulation_requirement: 模拟需求描述（必填；提供 business_brief 时可省略）
+        business_brief: 사업 브리프 JSON 문자열（可选）
         project_name: 项目名称（可选）
         additional_context: 额外说明（可选）
         
@@ -302,6 +304,12 @@ def generate_ontology():
         logger.debug(f"项目名称: {project_name}")
         logger.debug(f"模拟需求: {simulation_requirement[:100]}...")
         
+        try:
+            business_brief = normalize_business_brief(request.form.get('business_brief'))
+        except ValueError as exc:
+            return jsonify({"success": False, "error": str(exc)}), 400
+        simulation_requirement = build_simulation_requirement(simulation_requirement, business_brief)
+        
         if not simulation_requirement:
             return jsonify({
                 "success": False,
@@ -319,6 +327,7 @@ def generate_ontology():
         # 创建项目
         project = ProjectManager.create_project(name=project_name)
         project.simulation_requirement = simulation_requirement
+        project.business_brief = business_brief
         logger.info(f"创建项目: {project.project_id}")
         
         # 保存文件并提取文本
