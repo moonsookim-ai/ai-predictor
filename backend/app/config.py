@@ -55,6 +55,9 @@ class Config:
         'TREND', 'REFRESH', 'DO_NOTHING', 'FOLLOW', 'MUTE'
     ]
     
+    # 한국인 가상 소비자 패널（Nemotron-Personas-Korea 표본에서 뽑는 고객 Agent 수, 0이면 끔）
+    KOREAN_PANEL_SIZE = int(os.environ.get('KOREAN_PANEL_SIZE', '30'))
+    
     # Report Agent配置
     REPORT_AGENT_MAX_TOOL_CALLS = int(os.environ.get('REPORT_AGENT_MAX_TOOL_CALLS', '5'))
     REPORT_AGENT_MAX_REFLECTION_ROUNDS = int(os.environ.get('REPORT_AGENT_MAX_REFLECTION_ROUNDS', '2'))

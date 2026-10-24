@@ -75,7 +75,13 @@
     "layoutGraph": "图谱",
     "layoutSplit": "双栏",
     "layoutWorkbench": "工作台",
-    "stepNames": ["图谱构建", "环境搭建", "开始模拟", "报告生成", "深度互动"]
+    "stepNames": [
+      "图谱构建",
+      "环境搭建",
+      "开始模拟",
+      "报告生成",
+      "深度互动"
+    ]
   },
   "step1": {
     "ontologyGeneration": "本体生成",
@@ -663,5 +669,56 @@
     "llmSelectAgentFailed": "LLM选择Agent失败，使用默认选择: {error}",
     "generateInterviewQuestionsFailed": "生成采访问题失败: {error}",
     "generateInterviewSummaryFailed": "生成采访摘要失败: {error}"
+  },
+  "brief": {
+    "title": "业务简报",
+    "hint": "填写后将生成成功预测评分与韩国客户面板",
+    "initiativeType": "预测对象",
+    "types": {
+      "product": "新产品",
+      "business": "新业务",
+      "strategy": "新战略"
+    },
+    "applicantType": "推进主体",
+    "applicants": {
+      "pre_founder": "预备创业者（未注册）",
+      "early_startup": "初创企业（3年内）",
+      "growth_startup": "成长期创业企业（3~7年）",
+      "sme": "中小企业",
+      "large_company": "中坚·大型企业"
+    },
+    "name": "名称",
+    "namePlaceholder": "例：宠物狗手工零食订阅",
+    "industry": "行业",
+    "industryPlaceholder": "例：宠物食品 / D2C电商",
+    "description": "说明",
+    "descriptionPlaceholder": "用一两句话说明提供什么、给谁、如何提供",
+    "targetCustomer": "目标客户",
+    "targetCustomerPlaceholder": "例：首都圈30~40岁独居养狗人士",
+    "price": "价格（韩元）",
+    "pricePlaceholder": "例：29900",
+    "priceUnit": "价格单位",
+    "priceUnitPlaceholder": "例：月 / 次 / 个",
+    "competitors": "竞争对手·替代品",
+    "competitorsPlaceholder": "例：大型超市零食区、Coupang宠物零食",
+    "channels": "上市渠道",
+    "channelsPlaceholder": "例：自营商城、Smart Store",
+    "successCriteria": "成功标准（KPI）",
+    "successCriteriaPlaceholder": "例：6个月内付费订阅1,000人"
+  },
+  "scorecard": {
+    "successScore": "成功评分",
+    "confidence": "可信度",
+    "respondents": "问卷回复",
+    "top2box": "购买意向 Top-2 Box",
+    "medianWtp": "支付意愿中位数",
+    "priceFit": "愿付价格 ≥ 定价",
+    "conversion": "预估转化率（校正后）",
+    "success_drivers": "成功因素",
+    "key_risks": "关键风险",
+    "recommendations": "建议",
+    "support_programs": "可申请的政府支持项目（请核实最新公告）",
+    "regulatory_checks": "上市前法规·许可检查",
+    "disclaimer": "该评分汇总自LLM模拟利益相关方与韩国人物面板（Nemotron-Personas-Korea）的问卷，属于相对指标，未经真实市场结果校准，仅供决策参考。"
   }
 }

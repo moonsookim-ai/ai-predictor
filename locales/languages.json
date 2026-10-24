@@ -1,4 +1,8 @@
 {
+  "ko": {
+    "label": "한국어",
+    "llmInstruction": "반드시 한국어로 답하세요."
+  },
   "zh": {
     "label": "中文",
     "llmInstruction": "请使用中文回答。"

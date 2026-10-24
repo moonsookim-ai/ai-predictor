@@ -16,6 +16,8 @@
             <div class="header-divider"></div>
           </div>
 
+          <SuccessScorecard :simulationId="simulationId" />
+
           <!-- Sections List -->
           <div class="sections-list">
             <div 
@@ -394,6 +396,7 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick, h, reactive } f
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getAgentLog, getConsoleLog } from '../api/report'
+import SuccessScorecard from './SuccessScorecard.vue'
 
 const router = useRouter()
 const { t } = useI18n()

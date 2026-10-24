@@ -75,7 +75,13 @@
     "layoutGraph": "Graph",
     "layoutSplit": "Split",
     "layoutWorkbench": "Workbench",
-    "stepNames": ["Graph Build", "Env Setup", "Run Simulation", "Report Generation", "Deep Interaction"]
+    "stepNames": [
+      "Graph Build",
+      "Env Setup",
+      "Run Simulation",
+      "Report Generation",
+      "Deep Interaction"
+    ]
   },
   "step1": {
     "ontologyGeneration": "Ontology Generation",
@@ -663,5 +669,56 @@
     "llmSelectAgentFailed": "LLM agent selection failed, using default selection: {error}",
     "generateInterviewQuestionsFailed": "Failed to generate interview questions: {error}",
     "generateInterviewSummaryFailed": "Failed to generate interview summary: {error}"
+  },
+  "brief": {
+    "title": "Business Brief",
+    "hint": "Filling this in adds a success score and a Korean customer panel",
+    "initiativeType": "Initiative",
+    "types": {
+      "product": "New product",
+      "business": "New business",
+      "strategy": "New strategy"
+    },
+    "applicantType": "Applicant",
+    "applicants": {
+      "pre_founder": "Pre-founder (not yet registered)",
+      "early_startup": "Early startup (≤3 yrs)",
+      "growth_startup": "Growth startup (3–7 yrs)",
+      "sme": "SME",
+      "large_company": "Mid-size / large company"
+    },
+    "name": "Name",
+    "namePlaceholder": "e.g. Handmade dog treat subscription",
+    "industry": "Industry",
+    "industryPlaceholder": "e.g. Pet food / D2C commerce",
+    "description": "Description",
+    "descriptionPlaceholder": "What you offer, to whom, and how — in one or two sentences",
+    "targetCustomer": "Target customer",
+    "targetCustomerPlaceholder": "e.g. Single-person dog owners in their 30s–40s in the Seoul area",
+    "price": "Price (KRW)",
+    "pricePlaceholder": "e.g. 29900",
+    "priceUnit": "Price unit",
+    "priceUnitPlaceholder": "e.g. month / one-off / item",
+    "competitors": "Competitors / substitutes",
+    "competitorsPlaceholder": "e.g. Supermarket treats, Coupang pet snacks",
+    "channels": "Channels",
+    "channelsPlaceholder": "e.g. Own store, Smart Store",
+    "successCriteria": "Success criteria (KPI)",
+    "successCriteriaPlaceholder": "e.g. 1,000 paid subscribers in 6 months"
+  },
+  "scorecard": {
+    "successScore": "Success score",
+    "confidence": "Confidence",
+    "respondents": "Survey responses",
+    "top2box": "Purchase intent top-2 box",
+    "medianWtp": "Median willingness to pay",
+    "priceFit": "Willing to pay ≥ price",
+    "conversion": "Est. conversion (adjusted)",
+    "success_drivers": "Success drivers",
+    "key_risks": "Key risks",
+    "recommendations": "Recommendations",
+    "support_programs": "Applicable government support programs (check latest notices)",
+    "regulatory_checks": "Pre-launch regulatory checks",
+    "disclaimer": "A relative indicator aggregated from surveys of LLM-simulated stakeholders and a Korean persona panel (Nemotron-Personas-Korea). It is not calibrated against real market outcomes; use it as decision support only."
   }
 }

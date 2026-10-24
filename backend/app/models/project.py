@@ -48,6 +48,8 @@ class Project:
     
     # 配置
     simulation_requirement: Optional[str] = None
+    # 사업 브리프（신제품/신사업/신전략 성공 예측용 구조화 입력）
+    business_brief: Optional[Dict[str, Any]] = None
     chunk_size: int = 500
     chunk_overlap: int = 50
     
@@ -71,6 +73,7 @@ class Project:
             "zep_batch_id": self.zep_batch_id,
             "zep_batch_operation_id": self.zep_batch_operation_id,
             "simulation_requirement": self.simulation_requirement,
+            "business_brief": self.business_brief,
             "chunk_size": self.chunk_size,
             "chunk_overlap": self.chunk_overlap,
             "error": self.error
@@ -98,6 +101,7 @@ class Project:
             zep_batch_id=data.get('zep_batch_id'),
             zep_batch_operation_id=data.get('zep_batch_operation_id'),
             simulation_requirement=data.get('simulation_requirement'),
+            business_brief=data.get('business_brief'),
             chunk_size=data.get('chunk_size', 500),
             chunk_overlap=data.get('chunk_overlap', 50),
             error=data.get('error')

@@ -11,6 +11,7 @@ from flask import request, jsonify, send_file
 from . import report_bp
 from ..config import Config
 from ..services.report_agent import ReportAgent, ReportManager, ReportStatus
+from ..services.success_evaluator import SuccessEvaluator
 from ..services.simulation_manager import SimulationManager
 from ..services.simulation_runner import SimulationRunner, RunnerStatus
 from ..services.zep_graph_memory_updater import ZepGraphMemoryManager
@@ -28,6 +29,84 @@ logger = get_logger('mirofish.api.report')
 
 
 # ============== 报告生成接口 ==============
+
+def _evaluate_success_for_report(simulation_id, task_manager, task_id):
+    """
+    보고서 생성 전에 성공 예측 설문을 실행한다.
+    환경이 이미 종료됐으면 저장된 결과를 쓰고，실패해도 보고서 생성은 계속한다.
+    """
+    if not SimulationRunner.check_env_alive(simulation_id):
+        return SuccessEvaluator.load(simulation_id)
+
+    def on_progress(progress, message):
+        task_manager.update_task(task_id, progress=0, message=f"[evaluating] {message} ({progress}%)")
+
+    try:
+        return SuccessEvaluator().evaluate(simulation_id, progress_callback=on_progress)
+    except Exception:
+        logger.exception("성공 예측 평가 실패, 스코어카드 없이 보고서를 생성합니다: %s", simulation_id)
+        return SuccessEvaluator.load(simulation_id)
+
+
+@report_bp.route('/success-evaluation/<simulation_id>', methods=['GET'])
+def get_success_evaluation(simulation_id: str):
+    """저장된 성공 예측 스코어카드를 조회한다（설문 원응답 제외）"""
+    evaluation = SuccessEvaluator.load(simulation_id)
+    if not evaluation:
+        return jsonify({"success": False, "error": "성공 예측 평가 결과가 없습니다"}), 404
+    data = {key: value for key, value in evaluation.items() if key != "responses"}
+    data["respondent_count"] = len(evaluation.get("responses") or [])
+    return jsonify({"success": True, "data": data})
+
+
+@report_bp.route('/success-evaluation', methods=['POST'])
+def run_success_evaluation():
+    """
+    성공 예측 설문을 다시 실행한다（비동기）.
+
+    요청: {"simulation_id": "sim_xxxx"}
+    진행 상황은 GET /api/report/generate/status 와 같은 task 조회로 확인한다.
+    """
+    data = request.get_json() or {}
+    simulation_id = data.get('simulation_id')
+    if not simulation_id:
+        return jsonify({"success": False, "error": t('api.requireSimulationId')}), 400
+    if not SimulationManager().get_simulation(simulation_id):
+        return jsonify({"success": False, "error": t('api.simulationNotFound', id=simulation_id)}), 404
+    if not SimulationRunner.check_env_alive(simulation_id):
+        return jsonify({
+            "success": False,
+            "error": "시뮬레이션 환경이 종료되어 설문을 진행할 수 없습니다",
+        }), 409
+
+    task_manager = TaskManager()
+    task_id = task_manager.create_task(
+        task_type="success_evaluation",
+        metadata={"simulation_id": simulation_id},
+    )
+    current_locale = get_locale()
+
+    def run_evaluation():
+        set_locale(current_locale)
+        try:
+            task_manager.update_task(task_id, status=TaskStatus.PROCESSING, progress=0)
+            evaluation = SuccessEvaluator().evaluate(
+                simulation_id,
+                progress_callback=lambda progress, message: task_manager.update_task(
+                    task_id, progress=progress, message=message
+                ),
+            )
+            task_manager.complete_task(task_id, result={
+                "simulation_id": simulation_id,
+                "success_score": evaluation["scorecard"].get("success_score"),
+            })
+        except Exception as e:
+            logger.exception("성공 예측 평가 실패: %s", simulation_id)
+            task_manager.fail_task(task_id, str(e))
+
+    threading.Thread(target=run_evaluation, daemon=True).start()
+    return jsonify({"success": True, "data": {"simulation_id": simulation_id, "task_id": task_id}})
+
 
 @report_bp.route('/generate', methods=['POST'])
 def generate_report():
@@ -252,10 +331,15 @@ def generate_report():
                         message=t('api.initReportAgent')
                     )
 
+                    success_evaluation = _evaluate_success_for_report(
+                        simulation_id, task_manager, task_id
+                    )
+
                     agent = ReportAgent(
                         graph_id=graph_id,
                         simulation_id=simulation_id,
-                        simulation_requirement=simulation_requirement
+                        simulation_requirement=simulation_requirement,
+                        success_evaluation=success_evaluation
                     )
 
                     def progress_callback(stage, progress, message):
