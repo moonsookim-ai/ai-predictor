@@ -27,6 +27,7 @@ from ..services.simulation_runner import SimulationRunner, RunnerStatus
 from ..services.zep_graph_memory_updater import ZepGraphMemoryManager
 from ..utils.llm_client import LLMResponseError
 from ..utils.business_brief import build_simulation_requirement, normalize_business_brief
+from ..utils.predictor_ticket import TicketError, consume_ticket, notify_order, ticket_required, verify_ticket
 
 # 获取日志器
 logger = get_logger('mirofish.api')
@@ -274,6 +275,7 @@ def generate_ontology():
         files: 上传的文件（PDF/MD/TXT），可多个
         simulation_requirement: 模拟需求描述（必填；提供 business_brief 时可省略）
         business_brief: 사업 브리프 JSON 문자열（可选）
+        ticket: ceoai.kr 예측 실행권（PREDICTOR_TICKET_SECRET 설정 시 필수）
         project_name: 项目名称（可选）
         additional_context: 额外说明（可选）
         
@@ -323,9 +325,25 @@ def generate_ontology():
                 "success": False,
                 "error": t('api.requireFileUpload')
             }), 400
+
+        # ceoai.kr 에서 크레딧을 내고 받은 실행권이 있어야 새 예측을 만든다
+        order_id = None
+        if ticket_required():
+            try:
+                order_id = verify_ticket(request.form.get('ticket', ''))
+            except TicketError as exc:
+                return jsonify({"success": False, "error": str(exc), "need": "ticket"}), 402
         
         # 创建项目
         project = ProjectManager.create_project(name=project_name)
+        if order_id:
+            try:
+                consume_ticket(order_id, project.project_id)
+            except TicketError as exc:
+                ProjectManager.delete_project(project.project_id)
+                project = None
+                return jsonify({"success": False, "error": str(exc), "need": "ticket"}), 409
+            project.order_id = order_id
         project.simulation_requirement = simulation_requirement
         project.business_brief = business_brief
         logger.info(f"创建项目: {project.project_id}")
@@ -355,6 +373,7 @@ def generate_ontology():
         
         if not document_texts:
             ProjectManager.delete_project(project.project_id)
+            notify_order(project.order_id, "refund", "no readable document")
             return jsonify({
                 "success": False,
                 "error": t('api.noDocProcessed')
@@ -432,6 +451,8 @@ def generate_ontology():
 
         response_data = None
         if project is not None:
+            # 이 단계에서 실패한 프로젝트는 이어 갈 수 없으니 차감한 크레딧을 돌려준다
+            notify_order(project.order_id, "refund", "ontology generation failed")
             project.status = ProjectStatus.FAILED
             project.error = public_error
             try:

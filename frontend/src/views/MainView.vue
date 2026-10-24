@@ -211,6 +211,9 @@ const handleNewProject = async () => {
     if (pending.businessBrief) {
       formData.append('business_brief', JSON.stringify(pending.businessBrief))
     }
+    if (pending.ticket) {
+      formData.append('ticket', pending.ticket)
+    }
     
     const res = await generateOntology(formData)
     if (res.success) {

@@ -62,6 +62,26 @@ npm run dev                   # 프론트 http://localhost:3000, 백엔드 http:
 - `GET /api/report/success-evaluation/<simulation_id>`: 스코어카드를 조회합니다.
 - `POST /api/report/success-evaluation`: 설문을 다시 실행합니다(비동기). 요청 본문은 `{"simulation_id": "..."}`입니다.
 
+## ceoai.kr 크레딧 결제 연동
+
+예측은 [ceoai.kr/predictor](https://ceoai.kr/predictor/)에서 유료로 시작합니다. 결제 흐름은 다음과 같습니다.
+
+1. 회원이 ceoai.kr에서 Stripe 카드 결제로 크레딧을 충전합니다.
+2. 「예측 시작」을 누르면 예측 1건 값만큼 크레딧이 차감되고, 서명된 **실행권**이 발급됩니다. 실행권은 하루 동안 한 번 쓸 수 있습니다.
+3. 회원은 `?ticket=`을 단 주소로 이 앱에 들어옵니다.
+4. 앱은 실행권을 확인하고, 예측 프로젝트를 만들 때 소진합니다. 같은 실행권으로는 두 번 만들 수 없습니다.
+5. 결과에 따라 ceoai.kr에 알립니다(`POST /api/predictor-callback`).
+   - 프로젝트를 만들다 실패하면(문서 해석 실패, 온톨로지 생성 실패) `refund`를 보내고, 크레딧이 자동으로 환불됩니다.
+   - 첫 보고서가 완성되면 `complete`를 보냅니다. 그 뒤로는 환불되지 않습니다.
+   - 그래프·시뮬레이션·보고서 단계에서 실패한 경우에는 같은 프로젝트에서 추가 비용 없이 다시 시도할 수 있습니다.
+
+| 환경 변수 | 설명 |
+|---|---|
+| `PREDICTOR_TICKET_SECRET` | ceoai.kr의 같은 이름 시크릿과 **같은 값**입니다. 비워 두면 실행권 없이 열립니다(로컬 개발용). |
+| `PREDICTOR_CALLBACK_URL` | 기본값은 `https://ceoai.kr/api/predictor-callback`입니다. |
+
+실행권과 콜백 서명 형식은 `backend/app/utils/predictor_ticket.py`에 있습니다. ceoai.kr `functions/_predictor.js`와 같아야 하며, `tests/test_predictor_ticket.py`가 ceoai.kr이 만든 실제 실행권으로 이를 확인합니다.
+
 ## 한국 시장·정책 지식팩
 
 `backend/app/knowledge/korea_business_context.md`는 보고서와 평가 프롬프트에 들어가는 요약 자료입니다. 다루는 내용은 다음과 같습니다.
